@@ -55,6 +55,10 @@ app.use(function(req, res, next) {
     next();
 });
 
-app.use("/", users);
+app.get("/", (req, res) => {
+    res.render('index');
+});
+
+app.use("/auth", users);
 
 app.listen(keys.port, () => console.log(`Server running on port ${keys.port}`));

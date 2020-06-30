@@ -5,75 +5,91 @@ const router = express.Router();
 
 const User = require("../models/User");
 
-router.get("/", (req, res) => {
-    res.render('index');
+router.get('/login', (req, res)=>{
+    res.render('users/login');
 });
 
-router.post("/register", async (req, res, next) => {
-    const email = req.body.email;
-    const username = req.body.username;
+// router.get('/register', (req, res)=>{
+//     res.render('users/register');
+// });
 
-    try {
-        const user = await User.find({
-            $or: [
-                { email: { $regex: new RegExp("^" + email + "$", "i") } },
-                { username: { $regex: new RegExp("^" + username + "$", "i") } }
-            ]
-        });
+// router.post("/register", async (req, res, next) => {
+//     const email = req.body.email;
+//     const username = req.body.username;
+//     let errors = [];
 
-        if (user) {
-            user.forEach(thisUser => {
-                if (!thisUser.email.localeCompare(email))
-                    errors.email = "Email is already in use";
-                if (!thisUser.username.localeCompare(username))
-                    errors.username = "Username is already in use";
-            });
-        }
+//     if(req.body.password != req.body.password2){
+//         errors.push({text: "Passwords do not match"});
+//     }
 
-        const newUser = new User({
-            email,
-            username,
-            name: req.body.name,
-            password: req.body.password
-        });
+//     try {
+//         const user = await User.find({
+//             $or: [
+//                 { email: { $regex: new RegExp("^" + email + "$", "i") } },
+//                 { username: { $regex: new RegExp("^" + username + "$", "i") } }
+//             ]
+//         });
 
-        bcryptjs.genSalt(10, (err, salt) => {
-            bcryptjs.hash(newUser.password, salt, (err, hash) => {
-                if (err) throw err;
-                newUser.password = hash;
+//         if (user) {
+//             user.forEach(thisUser => {
+//                 if (!thisUser.email.localeCompare(email))
+//                     errors.push({text: "Email is already in use"});
+//                     //errors.email = "Email is already in use";
+//                 if (!thisUser.username.localeCompare(username))
+//                     errors.push({text: "Username is already in use"});    
+//                     //errors.username = "Username is already in use";
+//             });
+//         }
 
-                return newUser
-                    .save()
-                    .then(user => res.json(user))
-                    .catch(err => console.log(err));
-            });
-        });
-    } catch (e) {
-        next(e);
-    }
-});
+//         if(errors.length > 0){
+//             res.render('users/register', {
+//                 errors : errors,
+//                 username : req.body.username,
+//                 email : req.body.email,
+//                 password : req.body.password,
+//                 password2 : req.body.password2
+//             });
+//         } else {
+//             const newUser = new User({
+//                 email,
+//                 username,
+//                 password: req.body.password
+//             });
+    
+//             bcryptjs.genSalt(10, (err, salt) => {
+//                 bcryptjs.hash(newUser.password, salt, (err, hash) => {
+//                     if (err) throw err;
+//                     newUser.password = hash;
+
+//                     newUser.save();
+    
+//                     res.render('users/login', {success_msg: 'Welcome, ' + username + '! Please login.'});
+    
+//                     /*return newUser
+//                         .save()
+//                         .then(user => res.json(user))
+//                         .catch(err => console.log(err));*/
+//                 });
+//             });
+//         }
+//     } catch (e) {
+//         next(e);
+//     }
+// });
 
 router.post("/login", (req, res, next) => {
-    User.findOne({
-        username: { $regex: new RegExp(req.body.username, "i") }
-    })
-        .then(user => {
-            if (user.isVerified) {
-                passport.authenticate("local", {
-                    successRedirect: "/",
-                    failureRedirect: "/login"
-                })(req, res, next);
-            } else {
-                req.flash("error_msg", "Account is not yet active");
-                res.redirect("/login");
-            }
-        })
-        .catch(err => console.log(err));
+    passport.authenticate("local", {
+        successRedirect: "/",
+        failureRedirect: "/login",
+        failureFlash: true
+    })(req, res, next);
 });
 
-router.get("/logout", (req, res) => {
+//Logout route
+router.get('/logout', (req, res)=>{
     req.logout();
-    res.redirect("/login");
-});
+    req.flash('success_msg', 'You are logged out');
+    res.redirect('/users/login');
+})
 
 module.exports = router;

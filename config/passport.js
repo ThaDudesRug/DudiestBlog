@@ -5,17 +5,19 @@ const bcrypt = require("bcryptjs");
 // Load user model
 const User = mongoose.model("users");
 
-module.exports = function(passport) {
+module.exports = function (passport) {
     passport.use(
         new LocalStrategy(
             { usernameField: "username" },
             (username, password, done) => {
                 // Match user
                 User.findOne({
-                    username: { $regex: new RegExp(username, "i") }
-                }).then(user => {
+                    username,
+                }).then((user) => {
                     if (!user) {
-                        return done(null, false, { message: "No User Found" });
+                        return done(null, false, {
+                            message: "Username or Password incorrect",
+                        });
                     }
 
                     // Match password
@@ -25,7 +27,7 @@ module.exports = function(passport) {
                             return done(null, user);
                         } else {
                             return done(null, false, {
-                                message: "Password Incorrect"
+                                message: "Username or Password incorrect",
                             });
                         }
                     });
@@ -34,12 +36,12 @@ module.exports = function(passport) {
         )
     );
 
-    passport.serializeUser(function(user, done) {
+    passport.serializeUser(function (user, done) {
         done(null, user.id);
     });
 
-    passport.deserializeUser(function(id, done) {
-        User.findById(id, function(err, user) {
+    passport.deserializeUser(function (id, done) {
+        User.findById(id, function (err, user) {
             done(err, user);
         });
     });
