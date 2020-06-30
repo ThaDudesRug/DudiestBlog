@@ -11,6 +11,7 @@ const path = require("path");
 const keys = require("./config/keys");
 
 const users = require("./routes/users");
+const posts = require("./routes/posts");
 
 const app = express();
 
@@ -28,17 +29,17 @@ app.use(
     session({
         secret: keys.secretOrKey,
         resave: true,
-        saveUninitialized: true
+        saveUninitialized: true,
     })
 );
 
-app.use(express.static(path.join(__dirname, '/public')));
+app.use(express.static(path.join(__dirname, "/public")));
 
 mongoose.set("useFindAndModify", false);
 mongoose
     .connect(keys.mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log("MongoDB Connected"))
-    .catch(err => console.log(err));
+    .catch((err) => console.log(err));
 
 require("./config/passport")(passport);
 
@@ -47,7 +48,7 @@ app.use(passport.session());
 
 app.use(flash());
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     res.locals.success_msg = req.flash("success_msg");
     res.locals.error_msg = req.flash("error_msg");
     res.locals.error = req.flash("error");
@@ -56,9 +57,10 @@ app.use(function(req, res, next) {
 });
 
 app.get("/", (req, res) => {
-    res.render('index');
+    res.render("index");
 });
 
 app.use("/auth", users);
+app.use("/blog", posts);
 
 app.listen(keys.port, () => console.log(`Server running on port ${keys.port}`));

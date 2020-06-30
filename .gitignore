@@ -117,3 +117,4 @@ dist
 
 # custom files
 config/keys.js
+.vscode
